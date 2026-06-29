@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\register-app.ps1\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\capture-prompt.ps1\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind finished"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind error"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind attention"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind question"
+          }
+        ]
+      }
+    ]
+  }
+}

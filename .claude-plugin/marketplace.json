@@ -1,0 +1,14 @@
+{
+  "name": "notify-me",
+  "owner": {
+    "name": "Evandro Teixeira"
+  },
+  "plugins": [
+    {
+      "name": "windows-toast-notify",
+      "source": "./plugins/windows-toast-notify",
+      "description": "Native Windows toast notifications for Claude Code: prompt finished, question asked, attention needed, or an error. Shows the project folder and a short prompt summary.",
+      "version": "1.2.1"
+    }
+  ]
+}

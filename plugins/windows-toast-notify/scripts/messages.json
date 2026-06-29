@@ -1,0 +1,110 @@
+{
+  "en": {
+    "finished": "Prompt finished!",
+    "error": "An error occurred",
+    "attention": "Claude needs your attention",
+    "question": "Claude asked a question"
+  },
+  "pt": {
+    "finished": "Prompt concluído!",
+    "error": "Ocorreu um erro na execução",
+    "attention": "Claude precisa da sua atenção",
+    "question": "Claude fez uma pergunta"
+  },
+  "zh": {
+    "finished": "提示已完成！",
+    "error": "执行时发生错误",
+    "attention": "Claude 需要你的关注",
+    "question": "Claude 提出了一个问题"
+  },
+  "hi": {
+    "finished": "प्रॉम्प्ट पूरा हुआ!",
+    "error": "एक त्रुटि हुई",
+    "attention": "Claude को आपके ध्यान की आवश्यकता है",
+    "question": "Claude ने एक प्रश्न पूछा"
+  },
+  "es": {
+    "finished": "¡Prompt finalizado!",
+    "error": "Ocurrió un error",
+    "attention": "Claude necesita tu atención",
+    "question": "Claude hizo una pregunta"
+  },
+  "ar": {
+    "finished": "اكتمل الموجه!",
+    "error": "حدث خطأ",
+    "attention": "كلود يحتاج إلى انتباهك",
+    "question": "طرح كلود سؤالاً"
+  },
+  "fr": {
+    "finished": "Prompt terminé !",
+    "error": "Une erreur s'est produite",
+    "attention": "Claude a besoin de votre attention",
+    "question": "Claude a posé une question"
+  },
+  "bn": {
+    "finished": "প্রম্পট সম্পন্ন হয়েছে!",
+    "error": "একটি ত্রুটি ঘটেছে",
+    "attention": "Claude-এর আপনার মনোযোগ প্রয়োজন",
+    "question": "Claude একটি প্রশ্ন জিজ্ঞাসা করেছে"
+  },
+  "id": {
+    "finished": "Prompt selesai!",
+    "error": "Terjadi kesalahan",
+    "attention": "Claude membutuhkan perhatian Anda",
+    "question": "Claude mengajukan pertanyaan"
+  },
+  "ur": {
+    "finished": "پرامپٹ مکمل ہو گیا!",
+    "error": "ایک خرابی پیش آگئی",
+    "attention": "Claude کو آپ کی توجہ درکار ہے",
+    "question": "Claude نے ایک سوال پوچھا"
+  },
+  "ja": {
+    "finished": "プロンプトが完了しました！",
+    "error": "エラーが発生しました",
+    "attention": "Claudeがあなたの確認を求めています",
+    "question": "Claudeから質問があります"
+  },
+  "de": {
+    "finished": "Prompt abgeschlossen!",
+    "error": "Ein Fehler ist aufgetreten",
+    "attention": "Claude benötigt Ihre Aufmerksamkeit",
+    "question": "Claude hat eine Frage gestellt"
+  },
+  "ru": {
+    "finished": "Запрос завершён!",
+    "error": "Произошла ошибка",
+    "attention": "Claude требуется ваше внимание",
+    "question": "Claude задал вопрос"
+  },
+  "it": {
+    "finished": "Prompt completato!",
+    "error": "Si è verificato un errore",
+    "attention": "Claude ha bisogno della tua attenzione",
+    "question": "Claude ha posto una domanda"
+  },
+  "nl": {
+    "finished": "Prompt voltooid!",
+    "error": "Er is een fout opgetreden",
+    "attention": "Claude heeft je aandacht nodig",
+    "question": "Claude heeft een vraag gesteld"
+  },
+  "pl": {
+    "finished": "Prompt zakończony!",
+    "error": "Wystąpił błąd",
+    "attention": "Claude potrzebuje Twojej uwagi",
+    "question": "Claude zadał pytanie"
+  },
+  "tr": {
+    "finished": "İstem tamamlandı!",
+    "error": "Bir hata oluştu",
+    "attention": "Claude dikkatinizi bekliyor",
+    "question": "Claude bir soru sordu"
+  },
+  "ko": {
+    "finished": "프롬프트가 완료되었습니다!",
+    "error": "오류가 발생했습니다",
+    "attention": "Claude가 확인을 기다리고 있습니다",
+    "question": "Claude가 질문을 했습니다"
+  }
+}

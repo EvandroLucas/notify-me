@@ -1,0 +1,18 @@
+{
+  "name": "windows-toast-notify",
+  "description": "Native Windows toast notifications for Claude Code when a prompt finishes, Claude asks a question, needs attention, or hits an error. Shows the Claude logo in the header, a status icon, the project folder, and a short prompt summary.",
+  "version": "1.2.1",
+  "author": {
+    "name": "Evandro Teixeira"
+  },
+  "homepage": "https://github.com/EvandroLucas/notify-me",
+  "repository": "https://github.com/EvandroLucas/notify-me",
+  "license": "MIT",
+  "keywords": [
+    "windows",
+    "notifications",
+    "toast",
+    "hooks",
+    "claude-code"
+  ]
+}
