@@ -9,7 +9,10 @@ $ErrorActionPreference = 'SilentlyContinue'
 if ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -and $PSVersionTable.Platform -ne 'Win32NT') { return }
 
 if (-not [Console]::IsInputRedirected) { return }
-$raw = [Console]::In.ReadToEnd()
+# Le o stdin como bytes crus decodificados em UTF-8. NAO usar [Console]::In, que decodifica com
+# a codepage OEM do console (ex.: CP850) no contexto do hook e corrompe acentos do prompt
+# (ex.: "ç" UTF-8 C3A7 viraria "├º"). O JSON do hook do Claude Code sempre vem em UTF-8.
+$raw = (New-Object System.IO.StreamReader([Console]::OpenStandardInput(), [System.Text.Encoding]::UTF8)).ReadToEnd()
 if (-not $raw) { return }
 try { $j = $raw | ConvertFrom-Json } catch { return }
 

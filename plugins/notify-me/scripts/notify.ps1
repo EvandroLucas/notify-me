@@ -23,16 +23,20 @@ if ($PSVersionTable.PSEdition -eq 'Core') {
   $ps51 = Join-Path $Env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
   if (Test-Path $ps51) {
     $stdinData = ''
-    if ([Console]::IsInputRedirected) { $stdinData = [Console]::In.ReadToEnd() }
+    if ([Console]::IsInputRedirected) { $stdinData = (New-Object System.IO.StreamReader([Console]::OpenStandardInput(), [System.Text.Encoding]::UTF8)).ReadToEnd() }
+    # Garante que o stdin repassado ao 5.1 saia em UTF-8 (o 5.1 o le como UTF-8 abaixo).
+    $OutputEncoding = [System.Text.Encoding]::UTF8
     $stdinData | & $ps51 -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath -Kind $Kind
     exit $LASTEXITCODE
   }
 }
 
 # --- stdin do hook (JSON): cwd + session_id ---
+# Le o stdin como UTF-8 cru (nao [Console]::In, que usa a codepage OEM e corromperia acentos
+# em cwd, p.ex. uma pasta chamada "café").
 $cwd = $null; $sid = $null
 if ([Console]::IsInputRedirected) {
-  $raw = [Console]::In.ReadToEnd()
+  $raw = (New-Object System.IO.StreamReader([Console]::OpenStandardInput(), [System.Text.Encoding]::UTF8)).ReadToEnd()
   if ($raw) { try { $j = $raw | ConvertFrom-Json; $cwd = $j.cwd; $sid = $j.session_id } catch { } }
 }
 
