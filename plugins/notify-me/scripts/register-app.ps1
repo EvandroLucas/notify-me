@@ -3,10 +3,12 @@
   apareca no cabecalho das notificacoes. Roda no SessionStart; idempotente e silencioso.
   Nao requer privilegios de administrador.
 
-  Usa um AppUserModelID dedicado e uma logo de 256px. O Windows faz CACHE do icone por AUMID e
-  nao o rele dentro da mesma sessao quando o caminho do IconUri muda - entao, se a logo trocar de
-  lugar (ex.: o plugin foi renomeado/movido), versionamos o AUMID (...NotifyMe.v2) para forcar uma
-  leitura fresca. Um id novo nunca tem cache, garantindo que o icone do cabecalho seja exibido.
+  Detalhe importante: o Windows faz CACHE do icone do cabecalho por AppUserModelID e NAO o
+  rele quando o caminho do IconUri muda. O Claude Code instala o plugin num cache cujo caminho
+  inclui a VERSAO (.../cache/notify-me/notify-me/<versao>/...), entao apontar o IconUri direto
+  para os icones do plugin faria a logo "sumir" a cada atualizacao (caminho novo + AUMID cacheado).
+  Para evitar isso, copiamos a logo para um caminho ESTAVEL em %LOCALAPPDATA% e registramos esse
+  caminho - assim o IconUri nunca muda entre versoes, e a logo continua aparecendo apos updates.
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 
@@ -15,10 +17,20 @@ if ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -and $PSV
 
 $root = $Env:CLAUDE_PLUGIN_ROOT
 if (-not $root) { $root = Split-Path -Parent $PSScriptRoot }
-$logo = Join-Path (Join-Path $root 'icons') 'claude_logo_256.png'
+$srcLogo = Join-Path (Join-Path $root 'icons') 'claude_logo_256.png'
 
-# Mantenha este AUMID em sincronia com o usado em notify.ps1 (CreateToastNotifier).
-$key = 'HKCU:\SOFTWARE\Classes\AppUserModelId\ClaudeCode.NotifyMe.v2'
+# Copia a logo para um local estavel (independente da versao/local do plugin).
+$stableDir = Join-Path $Env:LOCALAPPDATA 'ClaudeCode-NotifyMe'
+if (-not (Test-Path $stableDir)) { New-Item -ItemType Directory -Force -Path $stableDir | Out-Null }
+$logo = Join-Path $stableDir 'claude_logo_256.png'
+$srcInfo = Get-Item $srcLogo -ErrorAction SilentlyContinue
+$dstInfo = Get-Item $logo -ErrorAction SilentlyContinue
+if ($srcInfo -and (-not $dstInfo -or $dstInfo.Length -ne $srcInfo.Length)) {
+  Copy-Item -Path $srcLogo -Destination $logo -Force
+}
+
+# AUMID dedicado e versionado. Mantenha em sincronia com notify.ps1 (CreateToastNotifier).
+$key = 'HKCU:\SOFTWARE\Classes\AppUserModelId\ClaudeCode.NotifyMe.v3'
 if (-not (Test-Path $key)) { New-Item -Path $key -Force | Out-Null }
 
 # Escreve apenas quando algo mudou (evita I/O a cada sessao)

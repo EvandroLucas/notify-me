@@ -113,7 +113,7 @@ $doc = [Windows.Data.Xml.Dom.XmlDocument]::new()
 $xml = "<toast><visual><binding template='ToastGeneric'>$texts<image placement='appLogoOverride' src='$src'/></binding></visual></toast>"
 $doc.LoadXml($xml)
 $toast = [Windows.UI.Notifications.ToastNotification]::new($doc)
-$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('ClaudeCode.NotifyMe.v2')
+$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('ClaudeCode.NotifyMe.v3')
 $notifier.Show($toast)
 
 # Show() apenas AGENDA o toast: a entrega ocorre de forma assincrona, via um servico COM
