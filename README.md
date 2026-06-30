@@ -95,7 +95,7 @@ into your profile.
 | OS | Mechanism | Icon support |
 |---|---|---|
 | Windows | WinRT toast (`Windows.UI.Notifications`) | Claude logo in header + status icon |
-| macOS | `terminal-notifier` if installed, else `osascript` | Logo only with `terminal-notifier` |
+| macOS | `terminal-notifier` if installed, else `osascript` | Claude logo + status thumbnail with `terminal-notifier` (none with `osascript`) |
 | Linux | `notify-send` (libnotify) | Status icon via `-i` |
 
 ---
@@ -127,8 +127,9 @@ setx NOTIFY_ME_LANG ja
 export NOTIFY_ME_LANG=ja
 ```
 
-Then restart Claude Code. Remove the variable to go back to auto-detection. On macOS/Linux,
-auto-detection reads your `LC_ALL` / `LC_MESSAGES` / `LANG` locale.
+Then restart Claude Code. Remove the variable to go back to auto-detection. Auto-detection reads
+your **macOS** preferred UI language (`defaults read -g AppleLanguages`) first, then falls back to the
+`LC_ALL` / `LC_MESSAGES` / `LANG` locale on macOS/Linux.
 
 ### Edit or add translations
 

@@ -59,12 +59,20 @@ except Exception:
 CWD="$(json_get cwd)"
 SID="$(json_get session_id)"
 
-# --- resolver idioma: override -> locale -> en ---
+# --- resolver idioma: override -> idioma do macOS / locale -> en ---
+# No macOS, LANG/LC_* raramente chegam aos subprocessos de hook, entao lemos o idioma
+# preferido da UI via `defaults read -g AppleLanguages` antes de cair no locale.
 if [ -n "${NOTIFY_ME_LANG:-}" ]; then
   LANG_CODE="$(printf '%s' "$NOTIFY_ME_LANG" | tr '[:upper:]' '[:lower:]' | sed 's/[._-].*//')"
 else
-  SYS="${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}"
-  LANG_CODE="$(printf '%s' "$SYS" | tr '[:upper:]' '[:lower:]' | sed 's/[._-].*//')"
+  LANG_CODE=""
+  if [ "$PLATFORM" = mac ] && command -v defaults >/dev/null 2>&1; then
+    LANG_CODE="$(defaults read -g AppleLanguages 2>/dev/null | grep -oE '[a-zA-Z]{2}' | head -n1 | tr '[:upper:]' '[:lower:]')"
+  fi
+  if [ -z "$LANG_CODE" ]; then
+    SYS="${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}"
+    LANG_CODE="$(printf '%s' "$SYS" | tr '[:upper:]' '[:lower:]' | sed 's/[._-].*//')"
+  fi
 fi
 [ -z "$LANG_CODE" ] && LANG_CODE=en
 
@@ -108,27 +116,45 @@ fi
 SUMMARY="$(printf '%s' "$SUMMARY" | tr '\n\t' '  ' | sed 's/  */ /g; s/^ //; s/ *$//')"
 if [ "${#SUMMARY}" -gt 60 ]; then SUMMARY="${SUMMARY:0:60}..."; fi
 
+# Localiza um executavel: PATH primeiro, depois caminhos conhecidos. Hooks podem rodar com
+# um PATH minimo que omite o Homebrew (/opt/homebrew/bin, /usr/local/bin), entao nao basta
+# confiar em `command -v`.
+find_bin() {
+  if command -v "$1" >/dev/null 2>&1; then command -v "$1"; return 0; fi
+  name="$1"; shift
+  for c in "$@"; do [ -x "$c" ] && { printf '%s' "$c"; return 0; }; done
+  return 1
+}
+
+# Rotulo da pasta: acrescenta ":" quando ha resumo, espelhando o toast do Windows.
+SUBTITLE="$FOLDER"
+[ -n "$FOLDER" ] && [ -n "$SUMMARY" ] && SUBTITLE="$FOLDER:"
+
 # --- disparar por plataforma ---
 if [ "$PLATFORM" = mac ]; then
+  LOGO="$ICONS/claude_logo_256.png"
   BODY="$SUMMARY"; [ -z "$BODY" ] && BODY="$FOLDER"; [ -z "$BODY" ] && BODY=" "
-  if command -v terminal-notifier >/dev/null 2>&1; then
-    terminal-notifier -title "$MSG" -subtitle "$FOLDER" -message "$BODY" \
-      -appIcon "$ICON" -group "ClaudeCode.NotifyMe" >/dev/null 2>&1
+  TN="$(find_bin terminal-notifier /opt/homebrew/bin/terminal-notifier /usr/local/bin/terminal-notifier)"
+  if [ -n "$TN" ]; then
+    # logo como icone do app (esquerda) + icone de status como imagem (direita), como no Windows
+    "$TN" -title "$MSG" -subtitle "$SUBTITLE" -message "$BODY" \
+      -appIcon "$LOGO" -contentImage "$ICON" -group "ClaudeCode.NotifyMe" >/dev/null 2>&1
   else
     esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
-    osascript -e "display notification \"$(esc "$BODY")\" with title \"$(esc "$MSG")\" subtitle \"$(esc "$FOLDER")\"" >/dev/null 2>&1
+    osascript -e "display notification \"$(esc "$BODY")\" with title \"$(esc "$MSG")\" subtitle \"$(esc "$SUBTITLE")\"" >/dev/null 2>&1
   fi
   exit 0
 fi
 
 if [ "$PLATFORM" = linux ]; then
-  command -v notify-send >/dev/null 2>&1 || exit 0
+  SEND="$(find_bin notify-send /usr/bin/notify-send /usr/local/bin/notify-send)"
+  [ -n "$SEND" ] || exit 0
   URG=normal; [ "$KIND" = error ] && URG=critical
   BODY="$FOLDER"
   if [ -n "$SUMMARY" ]; then
     if [ -n "$BODY" ]; then BODY="$BODY
 $SUMMARY"; else BODY="$SUMMARY"; fi
   fi
-  notify-send -a "Claude Code" -u "$URG" -i "$ICON" "$MSG" "$BODY" >/dev/null 2>&1
+  "$SEND" -a "Claude Code" -u "$URG" -i "$ICON" "$MSG" "$BODY" >/dev/null 2>&1
   exit 0
 fi
