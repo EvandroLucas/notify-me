@@ -49,7 +49,9 @@ $iconByKind = @{
   attention = 'claude_code_question.png'
   question  = 'claude_code_question.png'
 }
-$iconPath = (Join-Path $icons $iconByKind[$Kind]) -replace '\\', '/'
+# Espacos no caminho (ex.: "Evandro Lucas") precisam de %20 no URI file:/// ou a imagem
+# silenciosamente nao carrega no toast.
+$iconPath = (Join-Path $icons $iconByKind[$Kind]) -replace '\\', '/' -replace ' ', '%20'
 $src = "file:///$iconPath"
 
 # --- resolver idioma: override -> Windows -> ingles ---
@@ -111,4 +113,12 @@ $doc = [Windows.Data.Xml.Dom.XmlDocument]::new()
 $xml = "<toast><visual><binding template='ToastGeneric'>$texts<image placement='appLogoOverride' src='$src'/></binding></visual></toast>"
 $doc.LoadXml($xml)
 $toast = [Windows.UI.Notifications.ToastNotification]::new($doc)
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('ClaudeCode.NotifyMe').Show($toast)
+$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('ClaudeCode.NotifyMe')
+$notifier.Show($toast)
+
+# Show() apenas AGENDA o toast: a entrega ocorre de forma assincrona, via um servico COM
+# out-of-process da plataforma de notificacoes do Windows. Como cada hook roda em um processo
+# proprio que encerra imediatamente apos esta linha, a entrega as vezes e cancelada antes de
+# completar - e por isso o toast aparecia "so algumas vezes". Aguardar um curto intervalo da
+# tempo para a plataforma receber o toast antes do processo morrer.
+Start-Sleep -Milliseconds 400
