@@ -3,9 +3,10 @@
   apareca no cabecalho das notificacoes. Roda no SessionStart; idempotente e silencioso.
   Nao requer privilegios de administrador.
 
-  Usa um AppUserModelID dedicado (ClaudeCode.NotifyMe) e uma logo de 256px. O AUMID dedicado
-  evita o cache de icone do Windows associado a ids genericos, garantindo que o icone do
-  cabecalho seja sempre exibido.
+  Usa um AppUserModelID dedicado e uma logo de 256px. O Windows faz CACHE do icone por AUMID e
+  nao o rele dentro da mesma sessao quando o caminho do IconUri muda - entao, se a logo trocar de
+  lugar (ex.: o plugin foi renomeado/movido), versionamos o AUMID (...NotifyMe.v2) para forcar uma
+  leitura fresca. Um id novo nunca tem cache, garantindo que o icone do cabecalho seja exibido.
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 
@@ -16,7 +17,8 @@ $root = $Env:CLAUDE_PLUGIN_ROOT
 if (-not $root) { $root = Split-Path -Parent $PSScriptRoot }
 $logo = Join-Path (Join-Path $root 'icons') 'claude_logo_256.png'
 
-$key = 'HKCU:\SOFTWARE\Classes\AppUserModelId\ClaudeCode.NotifyMe'
+# Mantenha este AUMID em sincronia com o usado em notify.ps1 (CreateToastNotifier).
+$key = 'HKCU:\SOFTWARE\Classes\AppUserModelId\ClaudeCode.NotifyMe.v2'
 if (-not (Test-Path $key)) { New-Item -Path $key -Force | Out-Null }
 
 # Escreve apenas quando algo mudou (evita I/O a cada sessao)
@@ -26,4 +28,7 @@ if ($cur.DisplayName -ne 'Claude Code') {
 }
 if ($cur.IconUri -ne $logo) {
   New-ItemProperty -Path $key -Name 'IconUri' -Value $logo -PropertyType String -Force | Out-Null
+}
+if ($cur.IconBackgroundColor -ne '0') {
+  New-ItemProperty -Path $key -Name 'IconBackgroundColor' -Value '0' -PropertyType String -Force | Out-Null
 }
