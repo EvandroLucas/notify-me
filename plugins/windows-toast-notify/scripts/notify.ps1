@@ -9,6 +9,21 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+# As APIs de toast usadas abaixo (WinRT via type accelerator) so existem no Windows PowerShell 5.1
+# (Desktop). Quando o hook roda sob PowerShell 7+ (Core) - por ex. na extensao do VS Code - o
+# carregamento desses tipos falha ("Unable to find type [Windows.UI.Notifications...]") e nenhum
+# toast aparece. Nesse caso, reexecuta este mesmo script sob o powershell.exe 5.1, repassando o
+# stdin (JSON do hook) e o -Kind.
+if ($PSVersionTable.PSEdition -eq 'Core') {
+  $ps51 = Join-Path $Env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+  if (Test-Path $ps51) {
+    $stdinData = ''
+    if ([Console]::IsInputRedirected) { $stdinData = [Console]::In.ReadToEnd() }
+    $stdinData | & $ps51 -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath -Kind $Kind
+    exit $LASTEXITCODE
+  }
+}
+
 # --- stdin do hook (JSON): cwd + session_id ---
 $cwd = $null; $sid = $null
 if ([Console]::IsInputRedirected) {
