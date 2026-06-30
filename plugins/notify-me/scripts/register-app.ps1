@@ -9,6 +9,9 @@
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 
+# Registro de AppUserModelID e exclusivo do Windows; nada a fazer no macOS/Linux.
+if ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -and $PSVersionTable.Platform -ne 'Win32NT') { return }
+
 $root = $Env:CLAUDE_PLUGIN_ROOT
 if (-not $root) { $root = Split-Path -Parent $PSScriptRoot }
 $logo = Join-Path (Join-Path $root 'icons') 'claude_logo_256.png'

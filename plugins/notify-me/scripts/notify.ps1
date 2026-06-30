@@ -9,6 +9,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+# Em PowerShell Core fora do Windows (ex.: macOS/Linux com pwsh instalado) este script nao
+# se aplica - notify.sh cuida dessas plataformas. Sair cedo evita erros de WinRT e, quando as
+# duas entradas do hook disparam, garante uma unica notificacao.
+if ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -and $PSVersionTable.Platform -ne 'Win32NT') { exit 0 }
+
 # As APIs de toast usadas abaixo (WinRT via type accelerator) so existem no Windows PowerShell 5.1
 # (Desktop). Quando o hook roda sob PowerShell 7+ (Core) - por ex. na extensao do VS Code - o
 # carregamento desses tipos falha ("Unable to find type [Windows.UI.Notifications...]") e nenhum

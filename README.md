@@ -1,11 +1,14 @@
 # notify-me
 
-**Native Windows toast notifications for [Claude Code](https://www.claude.com/product/claude-code).**
+**Native desktop notifications for [Claude Code](https://www.claude.com/product/claude-code) — on Windows, macOS, and Linux.**
 Know the moment a prompt finishes, Claude asks you something, or something goes wrong — without babysitting the terminal.
 
 When Claude is working on a long task you usually switch to something else. `notify-me` pops a native
-Windows notification the instant Claude needs you or finishes, showing **which project** it is and a
+desktop notification the instant Claude needs you or finishes, showing **which project** it is and a
 **short summary of your prompt**, so you can tell sessions apart at a glance.
+
+It runs the right native mechanism for your OS automatically: **Windows toast**, **macOS notifications**, or
+**Linux `notify-send`** — no configuration needed.
 
 ---
 
@@ -35,9 +38,14 @@ the folder and a short prompt summary:
 
 ## Requirements
 
-- **Windows 10 or 11**
 - **Claude Code**
-- Windows notifications enabled (*Settings → System → Notifications*)
+- One of:
+  - **Windows 10 or 11** — notifications enabled (*Settings → System → Notifications*).
+  - **macOS** — works out of the box via `osascript`. For the Claude logo on the notification,
+    install [`terminal-notifier`](https://github.com/julienXX/terminal-notifier) (`brew install terminal-notifier`);
+    it's optional and detected automatically.
+  - **Linux** — `notify-send` available (package `libnotify-bin` on Debian/Ubuntu, `libnotify` on Fedora/Arch),
+    plus a running notification daemon (standard on GNOME/KDE and most desktops).
 
 ---
 
@@ -47,7 +55,7 @@ In Claude Code, add this repository as a plugin marketplace and install the plug
 
 ```
 /plugin marketplace add EvandroLucas/notify-me
-/plugin install windows-toast-notify@notify-me
+/plugin install notify-me@notify-me
 ```
 
 Then **restart Claude Code** (or start a new session). On the next session start the app is registered
@@ -67,16 +75,28 @@ It's a **pure plugin** — it does **not** touch your `settings.json`. Everythin
 
 - **Hooks** (`hooks/hooks.json`) fire on `Stop`, `StopFailure`, `Notification`, and
   `PreToolUse`/`AskUserQuestion`.
-- **`SessionStart` → `register-app.ps1`** registers a Windows App User Model ID
+- Each event has **two hook entries**: a PowerShell one (`shell: powershell`) for Windows and a Bash one
+  (`shell: bash`) for macOS/Linux. Each script self-detects the OS and **no-ops on the other platforms**,
+  so exactly one notification fires — even on Windows with Git Bash installed, where both shells exist.
+- **`SessionStart` → `register-app.ps1`** (Windows only) registers a Windows App User Model ID
   (`HKCU\Software\Classes\AppUserModelId\ClaudeCode.NotifyMe`) so the Claude logo can appear in the
   notification header. It's per-user, idempotent, and needs no administrator rights.
-- **`UserPromptSubmit` → `capture-prompt.ps1`** saves your prompt for the session so the notification
-  can show a short summary.
-- **`notify.ps1`** builds and shows each toast, reading the hook's JSON from stdin to get the current
-  working folder.
+- **`UserPromptSubmit` → `capture-prompt.ps1` / `capture-prompt.sh`** saves your prompt for the session
+  so the notification can show a short summary.
+- **`notify.ps1` (Windows) / `notify.sh` (macOS, Linux)** builds and shows each notification, reading the
+  hook's JSON from stdin to get the current working folder. Both share the same `messages.json` for
+  localization.
 
 Icons are bundled with the plugin and referenced through `${CLAUDE_PLUGIN_ROOT}`, so nothing is copied
 into your profile.
+
+### Per-OS notification mechanism
+
+| OS | Mechanism | Icon support |
+|---|---|---|
+| Windows | WinRT toast (`Windows.UI.Notifications`) | Claude logo in header + status icon |
+| macOS | `terminal-notifier` if installed, else `osascript` | Logo only with `terminal-notifier` |
+| Linux | `notify-send` (libnotify) | Status icon via `-i` |
 
 ---
 
@@ -98,14 +118,21 @@ Set the `NOTIFY_ME_LANG` environment variable to a two-letter code
 For example, to force Japanese:
 
 ```powershell
+# Windows (PowerShell)
 setx NOTIFY_ME_LANG ja
 ```
 
-Then restart Claude Code. Unset it (`setx NOTIFY_ME_LANG ""`) to go back to auto-detection.
+```bash
+# macOS / Linux — add to your shell profile (~/.zshrc, ~/.bashrc, ...)
+export NOTIFY_ME_LANG=ja
+```
+
+Then restart Claude Code. Remove the variable to go back to auto-detection. On macOS/Linux,
+auto-detection reads your `LC_ALL` / `LC_MESSAGES` / `LANG` locale.
 
 ### Edit or add translations
 
-All strings live in [`plugins/windows-toast-notify/scripts/messages.json`](plugins/windows-toast-notify/scripts/messages.json),
+All strings live in [`plugins/notify-me/scripts/messages.json`](plugins/notify-me/scripts/messages.json),
 keyed by language code and then by message (`finished`, `error`, `attention`, `question`). Edit a value
 to reword it, or add a new top-level language block to support another language. Save the file as
 **UTF-8** and restart Claude Code.
@@ -115,10 +142,10 @@ to reword it, or add a new top-level language block to support another language.
 ## Uninstall
 
 ```
-/plugin uninstall windows-toast-notify@notify-me
+/plugin uninstall notify-me@notify-me
 ```
 
-To also remove the Windows app registration (optional):
+To also remove the Windows app registration (optional, Windows only):
 
 ```powershell
 Remove-Item 'HKCU:\SOFTWARE\Classes\AppUserModelId\ClaudeCode.NotifyMe' -Recurse
@@ -133,15 +160,18 @@ notify-me/
 ├── .claude-plugin/
 │   └── marketplace.json            # marketplace manifest (this repo)
 ├── plugins/
-│   └── windows-toast-notify/
+│   └── notify-me/
 │       ├── .claude-plugin/
 │       │   └── plugin.json          # plugin manifest
 │       ├── hooks/
 │       │   └── hooks.json           # the notification hooks
 │       ├── scripts/
-│       │   ├── notify.ps1           # builds and shows the toast
-│       │   ├── register-app.ps1     # registers the app id (SessionStart)
-│       │   └── capture-prompt.ps1   # saves the prompt (UserPromptSubmit)
+│       │   ├── notify.ps1           # builds and shows the toast (Windows)
+│       │   ├── notify.sh            # macOS (terminal-notifier/osascript) + Linux (notify-send)
+│       │   ├── register-app.ps1     # registers the app id (SessionStart, Windows)
+│       │   ├── capture-prompt.ps1   # saves the prompt (UserPromptSubmit, Windows)
+│       │   ├── capture-prompt.sh    # saves the prompt (UserPromptSubmit, macOS/Linux)
+│       │   └── messages.json        # localized strings (shared by both)
 │       └── icons/                   # logo + status icons
 └── README.md
 ```

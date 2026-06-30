@@ -18,6 +18,11 @@
             "type": "command",
             "shell": "powershell",
             "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\capture-prompt.ps1\""
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/capture-prompt.sh\""
           }
         ]
       }
@@ -29,6 +34,11 @@
             "type": "command",
             "shell": "powershell",
             "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind finished"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh\" finished"
           }
         ]
       }
@@ -40,6 +50,11 @@
             "type": "command",
             "shell": "powershell",
             "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind error"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh\" error"
           }
         ]
       }
@@ -51,6 +66,11 @@
             "type": "command",
             "shell": "powershell",
             "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind attention"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh\" attention"
           }
         ]
       }
@@ -63,6 +83,11 @@
             "type": "command",
             "shell": "powershell",
             "command": "& \"$Env:CLAUDE_PLUGIN_ROOT\\scripts\\notify.ps1\" -Kind question"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh\" question"
           }
         ]
       }

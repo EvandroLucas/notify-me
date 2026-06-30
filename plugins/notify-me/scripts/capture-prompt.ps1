@@ -5,6 +5,9 @@
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 
+# No macOS/Linux (pwsh) este script nao se aplica - capture-prompt.sh cuida dessas plataformas.
+if ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -and $PSVersionTable.Platform -ne 'Win32NT') { return }
+
 if (-not [Console]::IsInputRedirected) { return }
 $raw = [Console]::In.ReadToEnd()
 if (-not $raw) { return }

@@ -1,0 +1,20 @@
+{
+  "name": "notify-me",
+  "description": "Native desktop notifications for Claude Code (Windows toast, macOS, and Linux) when a prompt finishes, Claude asks a question, needs attention, or hits an error. Shows a status icon, the project folder, and a short prompt summary.",
+  "version": "1.3.0",
+  "author": {
+    "name": "Evandro Teixeira"
+  },
+  "homepage": "https://github.com/EvandroLucas/notify-me",
+  "repository": "https://github.com/EvandroLucas/notify-me",
+  "license": "MIT",
+  "keywords": [
+    "windows",
+    "macos",
+    "linux",
+    "notifications",
+    "toast",
+    "hooks",
+    "claude-code"
+  ]
+}
