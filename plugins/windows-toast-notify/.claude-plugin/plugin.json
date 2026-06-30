@@ -1,7 +1,7 @@
 {
   "name": "windows-toast-notify",
-  "description": "Native Windows toast notifications for Claude Code when a prompt finishes, Claude asks a question, needs attention, or hits an error. Shows the Claude logo in the header, a status icon, the project folder, and a short prompt summary.",
-  "version": "1.2.1",
+  "description": "Native desktop notifications for Claude Code on Windows and macOS when a prompt finishes, Claude asks a question, needs attention, or hits an error. Shows the Claude logo, a status icon, the project folder, and a short prompt summary.",
+  "version": "1.3.0",
   "author": {
     "name": "Evandro Teixeira"
   },
@@ -10,8 +10,10 @@
   "license": "MIT",
   "keywords": [
     "windows",
+    "macos",
     "notifications",
     "toast",
+    "terminal-notifier",
     "hooks",
     "claude-code"
   ]
