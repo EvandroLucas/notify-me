@@ -1,39 +1,56 @@
 <#
-  register-app.ps1 - registra o app "Claude Code" no Windows (HKCU) para que a logo
-  apareca no cabecalho das notificacoes. Roda no SessionStart; idempotente e silencioso.
-  Nao requer privilegios de administrador.
+  register-app.ps1 - registers the "Claude Code" app in Windows (HKCU) so the logo
+  shows up in the notification header. Runs on SessionStart; idempotent and silent.
+  Does not require administrator privileges.
 
-  Detalhe importante: o Windows faz CACHE do icone do cabecalho por AppUserModelID e NAO o
-  rele quando o caminho do IconUri muda. O Claude Code instala o plugin num cache cujo caminho
-  inclui a VERSAO (.../cache/notify-me/notify-me/<versao>/...), entao apontar o IconUri direto
-  para os icones do plugin faria a logo "sumir" a cada atualizacao (caminho novo + AUMID cacheado).
-  Para evitar isso, copiamos a logo para um caminho ESTAVEL em %LOCALAPPDATA% e registramos esse
-  caminho - assim o IconUri nunca muda entre versoes, e a logo continua aparecendo apos updates.
+  Important detail: Windows CACHES the header icon by AppUserModelID and does NOT
+  re-read it when the IconUri path changes. Claude Code installs the plugin into a cache
+  whose path includes the VERSION (.../cache/notify-me/notify-me/<version>/...), so pointing
+  IconUri straight at the plugin's icons would make the logo "disappear" on every update
+  (new path + cached AUMID). To avoid that, we copy the logo to a STABLE path under
+  %LOCALAPPDATA% and register that path - so IconUri never changes between versions, and the
+  logo keeps showing after updates.
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 
-# Registro de AppUserModelID e exclusivo do Windows; nada a fazer no macOS/Linux.
+# AppUserModelID registration is Windows-only; nothing to do on macOS/Linux.
 if ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -and $PSVersionTable.Platform -ne 'Win32NT') { return }
 
+# $root: the plugin's install root. Claude Code exports CLAUDE_PLUGIN_ROOT when running hooks;
+# if it's absent (e.g. running the script by hand), fall back to the parent of this script's
+# folder (this file lives in <root>/scripts, so the parent of $PSScriptRoot is <root>).
 $root = $Env:CLAUDE_PLUGIN_ROOT
 if (-not $root) { $root = Split-Path -Parent $PSScriptRoot }
+
+# $srcLogo: absolute path to the logo shipped with the plugin (<root>/icons/claude_logo_256.png).
+# This is the SOURCE we copy from; its path changes on every plugin update (see header).
 $srcLogo = Join-Path (Join-Path $root 'icons') 'claude_logo_256.png'
 
-# Copia a logo para um local estavel (independente da versao/local do plugin).
+# $stableDir: a version-independent destination folder under %LOCALAPPDATA% that survives plugin
+# updates. Created on first run if it doesn't exist yet.
 $stableDir = Join-Path $Env:LOCALAPPDATA 'ClaudeCode-NotifyMe'
 if (-not (Test-Path $stableDir)) { New-Item -ItemType Directory -Force -Path $stableDir | Out-Null }
+
+# $logo: the STABLE copy of the logo inside $stableDir. This is the path we register as IconUri,
+# and it never changes between versions.
 $logo = Join-Path $stableDir 'claude_logo_256.png'
+
+# $srcInfo / $dstInfo: FileInfo objects for the source and the stable copy (or $null if missing).
+# We compare them to copy only when needed - i.e. when the destination is absent or its size
+# differs from the source (a cheap change check that avoids copying on every session).
 $srcInfo = Get-Item $srcLogo -ErrorAction SilentlyContinue
 $dstInfo = Get-Item $logo -ErrorAction SilentlyContinue
 if ($srcInfo -and (-not $dstInfo -or $dstInfo.Length -ne $srcInfo.Length)) {
   Copy-Item -Path $srcLogo -Destination $logo -Force
 }
 
-# AUMID dedicado e versionado. Mantenha em sincronia com notify.ps1 (CreateToastNotifier).
+# $key: the registry path of our dedicated, versioned AppUserModelID under HKCU. The ".v3" suffix
+# must stay in sync with notify.ps1 (CreateToastNotifier). Created if it doesn't exist yet.
 $key = 'HKCU:\SOFTWARE\Classes\AppUserModelId\ClaudeCode.NotifyMe.v3'
 if (-not (Test-Path $key)) { New-Item -Path $key -Force | Out-Null }
 
-# Escreve apenas quando algo mudou (evita I/O a cada sessao)
+# $cur: the current property values already stored under $key (or $null on first run). We read them
+# once so the writes below only fire when a value actually changed, avoiding registry I/O every session.
 $cur = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue
 if ($cur.DisplayName -ne 'Claude Code') {
   New-ItemProperty -Path $key -Name 'DisplayName' -Value 'Claude Code' -PropertyType String -Force | Out-Null
